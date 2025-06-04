@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Key-Value Store</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+</head>
+
+<body class="bg-light">
+    <div class="container mt-5">
+        <div class="card shadow p-4">
+            <h2 class="text-center mb-4"> Key-Value Store </h2>
+            <form method="post">
+                <div class="mb-3">
+                    <label class="form-label">Key</label>
+                    <input type="text" name="key" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Value</label>
+                    <input type="text" name="value" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Select gRPC Server Port</label>
+                    <select name="grpc_port" class="form-select">
+                        <option value="50051">Node 1 (50051)</option>
+                        <option value="50052">Node 2 (50052)</option>
+                        <option value="50053">Node 3 (50053)</option>
+                    </select>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <button name="action" value="get" class="btn btn-primary">Get</button>
+                    <button name="action" value="update" class="btn btn-success">Update</button>
+                    <button name="action" value="put" class="btn btn-warning">PUT</button>
+                    <button name="action" value="delete" class="btn btn-danger">Delete</button>
+                    <button name="action" value="search" class="btn btn-info">Search</button>
+                </div>
+            </form>
+            <hr>
+            {% if message %}
+            <div class="alert alert-info mt-3">{{ message }}</div>
+            {% endif %}
+            {% if result %}
+            <pre class="bg-dark text-white p-3 rounded">{{ result }}</pre>
+            {% endif %}
+        </div>
+    </div>
+</body>
+
+</html>

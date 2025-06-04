@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+service KeyValueStore {
+  rpc GetKey (KeyRequest) returns (KeyResponse);
+  rpc UpdateKey (UpdateRequest) returns (KeyResponse);
+  rpc PutKey (PutKeyRequest) returns (KeyResponse);
+  rpc DeleteKey (KeyRequest) returns (KeyResponse);
+  rpc SearchKey (SearchRequest) returns (SearchResponse);
+}
+
+message KeyRequest {
+
+  string key = 1;
+}
+
+message UpdateRequest {
+
+  string key = 1;
+  string value = 2;
+}
+
+message SearchRequest {
+
+  string keyword = 1;
+}
+
+message KeyResponse {
+  string key = 1;
+  string value = 2;
+  string message = 3;
+}
+
+message SearchResponse {
+  map<string, string> results = 1;
+  string message = 2;
+}
+
+message PutKeyRequest {
+
+  string key = 1;
+  string value = 2;
+}
