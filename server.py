@@ -71,8 +71,16 @@ class KeyValueStoreServicer(kvstore_pb2_grpc.KeyValueStoreServicer):
     def SearchKey(self, request, context):
         try:
             data = self.load_data()
-            results = {k: v for k, v in data.items() if request.keyword.lower() in k.lower()}
-            return kvstore_pb2.SearchResponse(results=results, message=f"Found {len(results)} results")
+            if not request.keyword.strip():
+                # Nếu keyword rỗng, trả về toàn bộ data
+                results = data
+                msg = f"All data ({len(results)})"
+            else:
+                # Tìm theo cả key và value (không phân biệt hoa thường)
+                results = {k: v for k, v in data.items()
+                           if request.keyword.lower() in k.lower() or request.keyword.lower() in v.lower()}
+                msg = f"Found {len(results)} results"
+            return kvstore_pb2.SearchResponse(results=results, message=msg)
         except Exception as e:
             print(f"Error in SearchKey: {e}")
             return kvstore_pb2.SearchResponse(results={}, message="Internal error")
