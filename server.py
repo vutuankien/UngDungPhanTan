@@ -58,12 +58,34 @@ class KeyValueStoreServicer(kvstore_pb2_grpc.KeyValueStoreServicer):
 
     def DeleteKey(self, request, context):
         try:
+            key = request.key
+            deleted_locally = False
+
+            # 1. Xóa ở node hiện tại (local file)
             data = self.load_data()
-            if request.key in data:
-                del data[request.key]
+            if key in data:
+                del data[key]
                 self.save_data(data)
-                return kvstore_pb2.KeyResponse(key=request.key, value="", message="Deleted")
-            return kvstore_pb2.KeyResponse(key=request.key, value="", message="Not found")
+                deleted_locally = True
+                print(f"Local delete key '{key}' on port {port}")
+            else:
+                print(f"Key '{key}' not found locally on port {port}")
+
+            # 2. Gửi InternalDelete đến các node còn lại
+            other_ports = [p for p in all_ports if p != port]
+            for backup_port in other_ports:
+                try:
+                    with grpc.insecure_channel(f'localhost:{backup_port}') as channel:
+                        stub = kvstore_pb2_grpc.KeyValueStoreStub(channel)
+                        stub.InternalDelete(kvstore_pb2.KeyRequest(key=key))
+                        print(f"Sent InternalDelete to port {backup_port}")
+                except Exception as e:
+                    print(f"Could not reach node {backup_port} for delete: {e}")
+
+            # 3. Trả kết quả
+            msg = "Deleted" if deleted_locally else "Not found locally (still attempted remote deletes)"
+            return kvstore_pb2.KeyResponse(key=key, value="", message=msg)
+
         except Exception as e:
             print(f"Error in DeleteKey: {e}")
             return kvstore_pb2.KeyResponse(key=request.key, value="", message="Internal error")

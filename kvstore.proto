@@ -6,6 +6,8 @@ service KeyValueStore {
   rpc PutKey (PutKeyRequest) returns (KeyResponse);
   rpc DeleteKey (KeyRequest) returns (KeyResponse);
   rpc SearchKey (SearchRequest) returns (SearchResponse);
+  rpc InternalDelete (KeyRequest) returns (KeyResponse);
+
 }
 
 message KeyRequest {

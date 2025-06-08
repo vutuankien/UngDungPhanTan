@@ -59,6 +59,11 @@ class KeyValueStoreStub(object):
                 request_serializer=kvstore__pb2.SearchRequest.SerializeToString,
                 response_deserializer=kvstore__pb2.SearchResponse.FromString,
                 _registered_method=True)
+        self.InternalDelete = channel.unary_unary(
+                '/KeyValueStore/InternalDelete',
+                request_serializer=kvstore__pb2.KeyRequest.SerializeToString,
+                response_deserializer=kvstore__pb2.KeyResponse.FromString,
+                _registered_method=True)
 
 
 class KeyValueStoreServicer(object):
@@ -94,6 +99,12 @@ class KeyValueStoreServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def InternalDelete(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_KeyValueStoreServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -121,6 +132,11 @@ def add_KeyValueStoreServicer_to_server(servicer, server):
                     servicer.SearchKey,
                     request_deserializer=kvstore__pb2.SearchRequest.FromString,
                     response_serializer=kvstore__pb2.SearchResponse.SerializeToString,
+            ),
+            'InternalDelete': grpc.unary_unary_rpc_method_handler(
+                    servicer.InternalDelete,
+                    request_deserializer=kvstore__pb2.KeyRequest.FromString,
+                    response_serializer=kvstore__pb2.KeyResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -258,6 +274,33 @@ class KeyValueStore(object):
             '/KeyValueStore/SearchKey',
             kvstore__pb2.SearchRequest.SerializeToString,
             kvstore__pb2.SearchResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def InternalDelete(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/KeyValueStore/InternalDelete',
+            kvstore__pb2.KeyRequest.SerializeToString,
+            kvstore__pb2.KeyResponse.FromString,
             options,
             channel_credentials,
             insecure,
