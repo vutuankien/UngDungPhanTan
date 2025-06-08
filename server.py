@@ -132,19 +132,20 @@ class KeyValueStoreServicer(kvstore_pb2_grpc.KeyValueStoreServicer):
         try:
             other_ports = [p for p in all_ports if p != port]
             if not other_ports:
-                print(" No other node to replicate to.")
+                print("⚠️ No other nodes to replicate to.")
                 return
 
-            backup_port = random.choice(other_ports)
-            try:
-                with grpc.insecure_channel(f'localhost:{backup_port}') as channel:
-                    stub = kvstore_pb2_grpc.KeyValueStoreStub(channel)
-                    stub.PutKey(kvstore_pb2.PutKeyRequest(key=request.key, value=request.value))
-                    print(f" Replicated key '{request.key}' to node {backup_port}")
-            except Exception as e:
-                print(f" Replication failed to node {backup_port}: {e}")
+            for backup_port in other_ports:
+                try:
+                    with grpc.insecure_channel(f'localhost:{backup_port}') as channel:
+                        stub = kvstore_pb2_grpc.KeyValueStoreStub(channel)
+                        stub.PutKey(kvstore_pb2.PutKeyRequest(key=request.key, value=request.value))
+                        print(f"Replicated key '{request.key}' to node {backup_port}")
+                except Exception as e:
+                    print(f"Failed to replicate to node {backup_port}: {e}")
         except Exception as e:
             print(f"Error in replicate_to_other_node: {e}")
+
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
