@@ -12,6 +12,30 @@ port = sys.argv[1] if len(sys.argv) > 1 else "50051"
 all_ports = ["50051", "50052", "50053"]  # Danh sách toàn bộ node
 
 class KeyValueStoreServicer(kvstore_pb2_grpc.KeyValueStoreServicer):
+
+    def __init__(self):
+        self.synchronize_data_on_startup()
+
+    def synchronize_data_on_startup(self):
+        local_data = self.load_data()
+        other_ports = [p for p in all_ports if p != port]
+        for backup_port in other_ports:
+            try:
+                with grpc.insecure_channel(f'localhost:{backup_port}') as channel:
+                    stub = kvstore_pb2_grpc.KeyValueStoreStub(channel)
+                    res = stub.SearchKey(kvstore_pb2.SearchRequest(keyword=""))
+                    if res and res.results:
+                        print(f"Synchronizing (merging) data from node {backup_port} to port {port}")
+                        remote_data = dict(res.results)
+                        # Merge: bổ sung các key còn thiếu vào local_data
+                        merged_data = {**remote_data}
+                        self.save_data(merged_data)
+                        return
+            except Exception as e:
+                print(f"Could not sync from node {backup_port}: {e}")
+        print("No available node to synchronize data from.")
+
+    
     def get_data_file(self):
         return f"data_{port}.json"
 
@@ -49,9 +73,18 @@ class KeyValueStoreServicer(kvstore_pb2_grpc.KeyValueStoreServicer):
             data = self.load_data()
             if request.key not in data:
                 return kvstore_pb2.KeyResponse(key=request.key, value="", message="Not found")
+
+            # 1. Cập nhật local
             data[request.key] = request.value
             self.save_data(data)
+            print(f"Updated key '{request.key}' locally on port {port}")
+
+            # 2. Gọi lại replicate_to_other_node bằng PutKeyRequest
+            put_request = kvstore_pb2.PutKeyRequest(key=request.key, value=request.value)
+            self.replicate_to_other_node(put_request)
+
             return kvstore_pb2.KeyResponse(key=request.key, value=request.value, message="Updated")
+
         except Exception as e:
             print(f"Error in UpdateKey: {e}")
             return kvstore_pb2.KeyResponse(key=request.key, value="", message="Internal error")
@@ -132,7 +165,7 @@ class KeyValueStoreServicer(kvstore_pb2_grpc.KeyValueStoreServicer):
         try:
             other_ports = [p for p in all_ports if p != port]
             if not other_ports:
-                print("⚠️ No other nodes to replicate to.")
+                print(" No other nodes to replicate to.")
                 return
 
             for backup_port in other_ports:
