@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rkvstore.proto\"\x19\n\nKeyRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\"+\n\rUpdateRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\" \n\rSearchRequest\x12\x0f\n\x07keyword\x18\x01 \x01(\t\":\n\x0bKeyResponse\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\x12\x0f\n\x07message\x18\x03 \x01(\t\"\x80\x01\n\x0eSearchResponse\x12-\n\x07results\x18\x01 \x03(\x0b\x32\x1c.SearchResponse.ResultsEntry\x12\x0f\n\x07message\x18\x02 \x01(\t\x1a.\n\x0cResultsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"+\n\rPutKeyRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t2\xdd\x01\n\rKeyValueStore\x12#\n\x06GetKey\x12\x0b.KeyRequest\x1a\x0c.KeyResponse\x12)\n\tUpdateKey\x12\x0e.UpdateRequest\x1a\x0c.KeyResponse\x12&\n\x06PutKey\x12\x0e.PutKeyRequest\x1a\x0c.KeyResponse\x12&\n\tDeleteKey\x12\x0b.KeyRequest\x1a\x0c.KeyResponse\x12,\n\tSearchKey\x12\x0e.SearchRequest\x1a\x0f.SearchResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rkvstore.proto\"\x19\n\nKeyRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\"+\n\rUpdateRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\" \n\rSearchRequest\x12\x0f\n\x07keyword\x18\x01 \x01(\t\":\n\x0bKeyResponse\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\x12\x0f\n\x07message\x18\x03 \x01(\t\"\x80\x01\n\x0eSearchResponse\x12-\n\x07results\x18\x01 \x03(\x0b\x32\x1c.SearchResponse.ResultsEntry\x12\x0f\n\x07message\x18\x02 \x01(\t\x1a.\n\x0cResultsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"+\n\rPutKeyRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t2\x8a\x02\n\rKeyValueStore\x12#\n\x06GetKey\x12\x0b.KeyRequest\x1a\x0c.KeyResponse\x12)\n\tUpdateKey\x12\x0e.UpdateRequest\x1a\x0c.KeyResponse\x12&\n\x06PutKey\x12\x0e.PutKeyRequest\x1a\x0c.KeyResponse\x12&\n\tDeleteKey\x12\x0b.KeyRequest\x1a\x0c.KeyResponse\x12,\n\tSearchKey\x12\x0e.SearchRequest\x1a\x0f.SearchResponse\x12+\n\x0eInternalDelete\x12\x0b.KeyRequest\x1a\x0c.KeyResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -48,5 +48,5 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_PUTKEYREQUEST']._serialized_start=314
   _globals['_PUTKEYREQUEST']._serialized_end=357
   _globals['_KEYVALUESTORE']._serialized_start=360
-  _globals['_KEYVALUESTORE']._serialized_end=581
+  _globals['_KEYVALUESTORE']._serialized_end=626
 # @@protoc_insertion_point(module_scope)

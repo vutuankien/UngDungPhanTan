@@ -84,6 +84,48 @@ def index():
                         message = "Not found on any node."
             except Exception as e:
                 message = f"Async Search Error: {str(e)}"
+        elif action == "delete":
+            NODE_PORTS = ["50051", "50052", "50053"] 
+            for node_port in NODE_PORTS:
+                try:
+                    with grpc.insecure_channel(f"localhost:{node_port}") as node_channel:
+                        node_stub = kvstore_pb2_grpc.KeyValueStoreStub(node_channel)
+                        res = node_stub.DeleteKey(kvstore_pb2.KeyRequest(key=key))
+                        if res.message == "Deleted":
+                            deleted_any = True
+                        print(f"Deleted on node {node_port}: {res.message}")
+                except Exception as e:
+                    print(f"Failed to delete on node {node_port}: {e}")
+
+            if deleted_any:
+                message = "Deleted on all nodes (where existed)"
+            else:
+                message = "Key not found on any node"
+        elif action == "update":
+            NODE_PORTS = ["50051", "50052", "50053"]
+            updated_any = False
+            result = ""
+
+            for node_port in NODE_PORTS:
+                try:
+                    with grpc.insecure_channel(f"localhost:{node_port}") as channel:
+                        stub = kvstore_pb2_grpc.KeyValueStoreStub(channel)
+                        res = stub.UpdateKey(kvstore_pb2.UpdateRequest(key=key, value=value))
+                        print(f"Updated key '{key}' on node {node_port}: {res.message}")
+
+                        if res.message == "Updated":
+                            updated_any = True
+                            result += f"{res.key}: {res.value} (on port {node_port})\n"
+                except grpc.RpcError as e:
+                    print(f"Failed to update on node {node_port}: {e.details()}")
+                except Exception as e:
+                    print(f"Error connecting to node {node_port}: {e}")
+
+            if updated_any:
+                message = "Updated key on all nodes where it existed"
+            else:
+                message = "Key not found on any node to update"
+
         else:
             # Các thao tác khác giữ nguyên, dùng gRPC sync
             with grpc.insecure_channel(f"localhost:{grpc_port}") as channel:
@@ -93,20 +135,10 @@ def index():
                         res = stub.GetKey(kvstore_pb2.KeyRequest(key=key))
                         message = res.message
                         result = f"{res.key}: {res.value}"
-                    elif action == "update":
-                        res = stub.UpdateKey(kvstore_pb2.UpdateRequest(key=key, value=value))
-                        message = res.message
-                        if res.message == "Not found":
-                            result = ""
-                        else:
-                            result = f"{res.key}: {res.value}"
                     elif action == "put":
                         res = stub.PutKey(kvstore_pb2.PutKeyRequest(key=key, value=value))
                         message = res.message
                         result = f"{res.key}: {res.value}"
-                    elif action == "delete":
-                        res = stub.DeleteKey(kvstore_pb2.KeyRequest(key=key))
-                        message = res.message
                 except grpc.RpcError as e:
                     message = f"gRPC Error: {e.details()}"
 
