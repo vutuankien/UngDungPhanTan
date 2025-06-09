@@ -34,6 +34,17 @@ async def sequential_search(keyword):
             return port, res
     return None
 
+async def parallel_search_all_nodes(keyword):
+    tasks = [async_search_node(p, keyword) for p in NODE_PORTS]
+    results = await asyncio.gather(*tasks)
+    combined = {}
+    port_messages = []
+    for port, res in results:
+        if res and res.results:
+            combined.update(res.results)
+            port_messages.append(f"{port}: {res.message}")
+    return combined, port_messages
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     message = ""
@@ -63,13 +74,12 @@ def index():
                     else:
                         message = "No data found."
                 else:
-                    # Search tuần tự như cũ (ưu tiên tìm theo key, value)
+                    # Tìm kiếm song song trên tất cả node và gộp kết quả
                     search_keyword = key if key.strip() else value
-                    search_result = asyncio.run(sequential_search(search_keyword))
-                    if search_result and search_result[1]:
-                        port_found, res = search_result
-                        message = f"Found on port {port_found}: {res.message}"
-                        result = "\n".join([f"{k}: {v}" for k, v in res.results.items()])
+                    combined_results, port_messages = asyncio.run(parallel_search_all_nodes(search_keyword))
+                    if combined_results:
+                        message = " | ".join(port_messages)
+                        result = "\n".join([f"{k}: {v}" for k, v in combined_results.items()])
                     else:
                         message = "Not found on any node."
             except Exception as e:
