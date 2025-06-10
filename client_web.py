@@ -4,19 +4,17 @@ import kvstore_pb2
 import kvstore_pb2_grpc
 import sys
 import asyncio
-import grpc.aio as aio  # Bước 1: Import gRPC AsyncIO
+import grpc.aio as aio  
 
 if len(sys.argv) > 1:
     port = sys.argv[1]
 else:
-    port = 50051  # default server port if not specified
+    port = 50051 
 
-# Danh sách các port node để tìm kiếm song song
-NODE_PORTS = ["50051", "50052", "50053"]  # Đổi từ all_ports thành NODE_PORTS
+NODE_PORTS = ["50051", "50052", "50053"] 
 
 app = Flask(__name__)
 
-# Bước 2: Hàm async gửi truy vấn đến một node
 async def async_search_node(port, keyword):
     async with aio.insecure_channel(f"localhost:{port}") as channel:
         stub = kvstore_pb2_grpc.KeyValueStoreStub(channel)
@@ -26,7 +24,7 @@ async def async_search_node(port, keyword):
         except Exception as e:
             return port, None
 
-# Hàm async tìm kiếm tuần tự từng node
+
 async def sequential_search(keyword):
     for p in NODE_PORTS:
         port, res = await async_search_node(p, keyword)
@@ -61,7 +59,6 @@ def index():
         if action == "search":
             try:
                 if not key.strip() and not value.strip():
-                    # Nếu cả key và value đều rỗng, lấy toàn bộ data ở port đã chọn
                     async def search_all(port):
                         async with aio.insecure_channel(f"localhost:{port}") as channel:
                             stub = kvstore_pb2_grpc.KeyValueStoreStub(channel)
@@ -74,7 +71,6 @@ def index():
                     else:
                         message = "No data found."
                 else:
-                    # Tìm kiếm song song trên tất cả node và gộp kết quả
                     search_keyword = key if key.strip() else value
                     combined_results, port_messages = asyncio.run(parallel_search_all_nodes(search_keyword))
                     if combined_results:
@@ -127,7 +123,6 @@ def index():
                 message = "Key not found on any node to update"
 
         else:
-            # Các thao tác khác giữ nguyên, dùng gRPC sync
             with grpc.insecure_channel(f"localhost:{grpc_port}") as channel:
                 stub = kvstore_pb2_grpc.KeyValueStoreStub(channel)
                 try:

@@ -7,7 +7,6 @@ import random
 import kvstore_pb2
 import kvstore_pb2_grpc
 
-# Đọc cổng từ tham số dòng lệnh
 port = sys.argv[1] if len(sys.argv) > 1 else "50051"
 all_ports = ["50051", "50052", "50053"]  # Danh sách toàn bộ node
 
@@ -27,7 +26,6 @@ class KeyValueStoreServicer(kvstore_pb2_grpc.KeyValueStoreServicer):
                     if res and res.results:
                         print(f"Synchronizing (merging) data from node {backup_port} to port {port}")
                         remote_data = dict(res.results)
-                        # Merge: bổ sung các key còn thiếu vào local_data
                         merged_data = {**remote_data}
                         self.save_data(merged_data)
                         return
@@ -73,13 +71,9 @@ class KeyValueStoreServicer(kvstore_pb2_grpc.KeyValueStoreServicer):
             data = self.load_data()
             if request.key not in data:
                 return kvstore_pb2.KeyResponse(key=request.key, value="", message="Not found")
-
-            # 1. Cập nhật local
             data[request.key] = request.value
             self.save_data(data)
             print(f"Updated key '{request.key}' locally on port {port}")
-
-            # 2. Gọi lại replicate_to_other_node bằng PutKeyRequest
             put_request = kvstore_pb2.PutKeyRequest(key=request.key, value=request.value)
             self.replicate_to_other_node(put_request)
 
@@ -93,8 +87,6 @@ class KeyValueStoreServicer(kvstore_pb2_grpc.KeyValueStoreServicer):
         try:
             key = request.key
             deleted_locally = False
-
-            # 1. Xóa ở node hiện tại (local file)
             data = self.load_data()
             if key in data:
                 del data[key]
@@ -103,8 +95,6 @@ class KeyValueStoreServicer(kvstore_pb2_grpc.KeyValueStoreServicer):
                 print(f"Local delete key '{key}' on port {port}")
             else:
                 print(f"Key '{key}' not found locally on port {port}")
-
-            # 2. Gửi InternalDelete đến các node còn lại
             other_ports = [p for p in all_ports if p != port]
             for backup_port in other_ports:
                 try:
@@ -114,8 +104,6 @@ class KeyValueStoreServicer(kvstore_pb2_grpc.KeyValueStoreServicer):
                         print(f"Sent InternalDelete to port {backup_port}")
                 except Exception as e:
                     print(f"Could not reach node {backup_port} for delete: {e}")
-
-            # 3. Trả kết quả
             msg = "Deleted" if deleted_locally else "Not found locally (still attempted remote deletes)"
             return kvstore_pb2.KeyResponse(key=key, value="", message=msg)
 
@@ -131,9 +119,8 @@ class KeyValueStoreServicer(kvstore_pb2_grpc.KeyValueStoreServicer):
                 results = data
                 msg = f"All data ({len(results)})"
             else:
-                # Tìm theo cả key và value (không phân biệt hoa thường)
                 results = {k: v for k, v in data.items()
-                           if request.keyword.lower() in k.lower() or request.keyword.lower() in v.lower()}
+                        if request.keyword.lower() in k.lower() or request.keyword.lower() in v.lower()}
                 msg = f"Found {len(results)} results"
             return kvstore_pb2.SearchResponse(results=results, message=msg)
         except Exception as e:
