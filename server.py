@@ -56,16 +56,6 @@ class KeyValueStoreServicer(kvstore_pb2_grpc.KeyValueStoreServicer):
                 json.dump(data, f, indent=2)
         except Exception as e:
             print(f"Error saving data: {e}")
-
-    def GetKey(self, request, context):
-        try:
-            data = self.load_data()
-            value = data.get(request.key, "")
-            return kvstore_pb2.KeyResponse(key=request.key, value=value, message="Found" if value else "Not found")
-        except Exception as e:
-            print(f"Error in GetKey: {e}")
-            return kvstore_pb2.KeyResponse(key=request.key, value="", message="Internal error")
-
     def UpdateKey(self, request, context):
         try:
             data = self.load_data()
@@ -82,6 +72,16 @@ class KeyValueStoreServicer(kvstore_pb2_grpc.KeyValueStoreServicer):
         except Exception as e:
             print(f"Error in UpdateKey: {e}")
             return kvstore_pb2.KeyResponse(key=request.key, value="", message="Internal error")
+
+    def GetKey(self, request, context):
+        try:
+            data = self.load_data()
+            value = data.get(request.key, "")
+            return kvstore_pb2.KeyResponse(key=request.key, value=value, message="Found" if value else "Not found")
+        except Exception as e:
+            print(f"Error in GetKey: {e}")
+            return kvstore_pb2.KeyResponse(key=request.key, value="", message="Internal error")
+
 
     def DeleteKey(self, request, context):
         try:
